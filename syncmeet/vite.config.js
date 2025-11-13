@@ -10,6 +10,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "dist",
+    outDir: "./", // Output directly to current directory instead of dist
+    emptyOutDir: false, // Don't delete everything first
   },
 });
