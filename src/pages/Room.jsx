@@ -90,10 +90,35 @@ export default function Room() {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    alert("Room link copied to clipboard!");
+
+    // Check if mobile device
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // Try native share on mobile only
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join my Syncmeet room",
+          text: `Find a time that works for everyone! Room code: ${roomId}`,
+          url: url,
+        });
+        return;
+      } catch (err) {
+        if (err.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    // Use clipboard for desktop (or if mobile share failed)
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("Room link copied to clipboard!");
+    } catch (err) {
+      prompt("Copy this link manually:", url);
+    }
   };
 
   if (loading) {
