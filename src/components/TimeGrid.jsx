@@ -73,43 +73,10 @@ const TimeGrid = ({
     draggedSlots.current.clear();
   };
 
-  const handleTouchStart = (e, day, time) => {
+  const handleTouchTap = (e, day, time) => {
     e.preventDefault();
-    setIsDragging(true);
     const slotId = getSlotId(day, time);
-    const currentlyBusy = busySlots.includes(slotId);
-    setDragMode(currentlyBusy ? "remove" : "add");
-    draggedSlots.current = new Set([slotId]);
     onSlotToggle(slotId);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-
-    const touch = e.touches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-    if (element && element.dataset.slotId) {
-      const slotId = element.dataset.slotId;
-
-      if (!draggedSlots.current.has(slotId)) {
-        draggedSlots.current.add(slotId);
-        const currentlyBusy = busySlots.includes(slotId);
-
-        if (dragMode === "add" && !currentlyBusy) {
-          onSlotToggle(slotId);
-        } else if (dragMode === "remove" && currentlyBusy) {
-          onSlotToggle(slotId);
-        }
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    setDragMode(null);
-    draggedSlots.current.clear();
   };
 
   return (
@@ -117,8 +84,6 @@ const TimeGrid = ({
       className="w-full h-full flex flex-col px-[2%] md:px-0"
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Container with max-width */}
       <div className="max-w-full md:max-w-[800px] mx-auto select-none h-full flex flex-col w-full">
@@ -147,7 +112,7 @@ const TimeGrid = ({
           {timeSlots.map((time) => (
             <div
               key={time}
-              className="grid gap-1 flex-1 min-h-[44px]"
+              className="grid gap-1 flex-1 min-h-[32px] md:min-h-[44px]"
               style={{
                 gridTemplateColumns: `minmax(50px, 0.8fr) repeat(${days.length}, minmax(40px, 1fr))`,
               }}
@@ -166,7 +131,7 @@ const TimeGrid = ({
                     data-slot-id={getSlotId(day, time)}
                     onMouseDown={() => handleMouseDown(day, time)}
                     onMouseEnter={() => handleMouseEnter(day, time)}
-                    onTouchStart={(e) => handleTouchStart(e, day, time)}
+                    onTouchEnd={(e) => handleTouchTap(e, day, time)}
                     className={`
               h-full w-full rounded-md transition-colors
               ${
