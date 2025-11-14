@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { getRoom } from "@/utils/roomHelpers";
 
 export default function Join() {
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const roomCodeFromUrl = searchParams.get("room") || "";
+
   const [name, setName] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+  const [roomCode, setRoomCode] = useState(roomCodeFromUrl);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleJoinRoom = async () => {
     setError("");

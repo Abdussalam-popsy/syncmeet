@@ -91,7 +91,8 @@ export default function Room() {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    // Dynamic URL that works locally and on any domain
+    const url = `${window.location.origin}/join?room=${roomId}`;
 
     // Check if mobile device
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
