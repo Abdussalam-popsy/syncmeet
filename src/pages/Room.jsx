@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import TimeGrid from "../components/TimeGrid";
 import ResultsGrid from "../components/ResultsGrid";
 import {
@@ -11,15 +11,15 @@ import {
 
 export default function Room() {
   const { roomId } = useParams();
+  const navigate = useNavigate();
   const [busySlots, setBusySlots] = useState([]);
   const [room, setRoom] = useState(null);
   const [participantId, setParticipantId] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("mark"); // 'mark' or 'results'
+  const [view, setView] = useState("mark");
   const [filter, setFilter] = useState("everything");
 
-  // Load room data on mount
   // Load room data on mount
   useEffect(() => {
     const loadRoom = async () => {
@@ -36,16 +36,13 @@ export default function Room() {
           );
 
           if (storedParticipantId) {
-            // Reuse existing participant ID
             setParticipantId(storedParticipantId);
           } else {
-            // Create new participant
             const pId = await addParticipant(roomId, {
               name: userName,
               busySlots: [],
             });
             setParticipantId(pId);
-            // Store it for future page loads
             localStorage.setItem(`participant_${roomId}`, pId);
           }
         } else {
@@ -69,7 +66,6 @@ export default function Room() {
     const unsubscribe = subscribeToParticipants(roomId, (participantsList) => {
       setParticipants(participantsList);
 
-      // Update current user's busy slots from Firebase
       const currentParticipant = participantsList.find(
         (p) => p.id === participantId
       );
@@ -89,7 +85,6 @@ export default function Room() {
 
     setBusySlots(newBusySlots);
 
-    // Save to Firebase
     if (participantId) {
       await updateParticipantBusySlots(roomId, participantId, newBusySlots);
     }
@@ -119,11 +114,22 @@ export default function Room() {
   }
 
   return (
-    <div className="app-container min-h-screen py-8">
-      <div className="flex justify-between items-start mb-2">
-        <h1 className="text-3xl font-bold">
-          {view === "mark" ? "When are you busy?" : "Available times"}
-        </h1>
+    <div className="app-container h-screen flex flex-col py-4 md:py-8">
+      {/* Header */}
+      {/* Header */}
+      <div className="flex justify-between items-start mb-2 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/")}
+            className="text-gray-600 hover:text-gray-900"
+            aria-label="Go home"
+          >
+            ← Home
+          </button>
+          <h1 className="text-3xl font-bold">
+            {view === "mark" ? "When are you busy?" : "Available times"}
+          </h1>
+        </div>
         <button
           onClick={handleShare}
           className="bg-primary-blue text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600"
@@ -132,7 +138,7 @@ export default function Room() {
         </button>
       </div>
 
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-4 mb-4 flex-shrink-0">
         {view === "mark" ? (
           <p className="text-gray-600">Select times you are busy</p>
         ) : (
@@ -156,7 +162,7 @@ export default function Room() {
       </div>
 
       {view === "results" && (
-        <div className="mb-4">
+        <div className="mb-4 flex-shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Show</span>
             <select
@@ -165,7 +171,7 @@ export default function Room() {
               className="px-3 py-1 rounded border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue"
             >
               <option value="everything">Everything</option>
-              <option value="earliest">Earliest</option>
+              <option value="earliest">Earliest available</option>
               <option value="mornings">Mornings</option>
               <option value="afternoons">Afternoons</option>
               <option value="evenings">Evenings</option>
@@ -174,27 +180,31 @@ export default function Room() {
         </div>
       )}
 
-      {view === "mark" ? (
-        <TimeGrid
-          startTime={room.startTime}
-          endTime={room.endTime}
-          days={room.days}
-          timeSlotDuration={room.timeSlotDuration}
-          busySlots={busySlots}
-          onSlotToggle={handleSlotToggle}
-        />
-      ) : (
-        <ResultsGrid
-          startTime={room.startTime}
-          endTime={room.endTime}
-          days={room.days}
-          timeSlotDuration={room.timeSlotDuration}
-          participants={participants}
-          filter={filter}
-        />
-      )}
+      {/* Grid - grows to fill remaining space */}
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+        {view === "mark" ? (
+          <TimeGrid
+            startTime={room.startTime}
+            endTime={room.endTime}
+            days={room.days}
+            timeSlotDuration={room.timeSlotDuration}
+            busySlots={busySlots}
+            onSlotToggle={handleSlotToggle}
+          />
+        ) : (
+          <ResultsGrid
+            startTime={room.startTime}
+            endTime={room.endTime}
+            days={room.days}
+            timeSlotDuration={room.timeSlotDuration}
+            participants={participants}
+            filter={filter}
+          />
+        )}
+      </div>
 
-      <div className="flex gap-4 mt-6">
+      {/* Bottom buttons - fixed height */}
+      <div className="flex gap-4 mt-4 flex-shrink-0">
         <button
           onClick={() => setView("mark")}
           className={`flex-1 py-3 rounded-lg font-medium transition-colors ${

@@ -8,7 +8,6 @@ const ResultsGrid = ({
   participants,
   filter = "everything",
 }) => {
-  // Helper function - define FIRST before using it in useMemo
   const getSlotId = (day, time) => `${day}-${time}`;
 
   // Generate time slots
@@ -40,7 +39,7 @@ const ResultsGrid = ({
     return slots;
   }, [startTime, endTime, timeSlotDuration]);
 
-  // Find the earliest available slot (where busyCount === 0)
+  // Find the earliest available slot
   const earliestAvailableTime = useMemo(() => {
     for (const time of timeSlots) {
       for (const day of days) {
@@ -54,7 +53,7 @@ const ResultsGrid = ({
       }
     }
     return null;
-  }, [timeSlots, days, participants, getSlotId]);
+  }, [timeSlots, days, participants]);
 
   // Filter time slots based on filter
   const filteredTimeSlots = useMemo(() => {
@@ -79,13 +78,11 @@ const ResultsGrid = ({
     });
   }, [timeSlots, filter, earliestAvailableTime]);
 
-  // Count how many participants are busy at this slot
   const getBusyCount = (day, time) => {
     const slotId = getSlotId(day, time);
     return participants.filter((p) => p.busySlots.includes(slotId)).length;
   };
 
-  // Get participants who are busy at this slot
   const getBusyParticipants = (day, time) => {
     const slotId = getSlotId(day, time);
     return participants
@@ -93,7 +90,6 @@ const ResultsGrid = ({
       .map((p) => p.name);
   };
 
-  // Determine slot color based on busy count
   const getSlotColor = (busyCount, totalParticipants) => {
     if (busyCount === 0) {
       return "bg-available";
@@ -106,10 +102,10 @@ const ResultsGrid = ({
 
   const totalParticipants = participants.length;
 
-  // Handle empty state - ADD THIS BEFORE THE MAIN RETURN
+  // Handle empty state
   if (filteredTimeSlots.length === 0) {
     return (
-      <div className="overflow-x-auto">
+      <div className="w-full h-full flex items-center justify-center">
         <div className="p-8 text-center bg-gray-50 rounded-lg">
           <p className="text-gray-600">
             {filter === "earliest"
@@ -122,67 +118,77 @@ const ResultsGrid = ({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <div className="inline-block min-w-full select-none">
-        <table className="border-collapse">
-          <thead>
-            <tr>
-              <th className="w-20 p-2 text-left text-sm font-medium text-gray-700">
-                Time
-              </th>
-              {days.map((day) => (
-                <th
-                  key={day}
-                  className="min-w-[80px] p-2 text-center text-sm font-medium text-gray-700"
-                >
-                  {day}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTimeSlots.map((time) => (
-              <tr key={time}>
-                <td className="p-2 text-sm text-gray-600">{time}</td>
-                {days.map((day) => {
-                  const busyCount = getBusyCount(day, time);
-                  const busyParticipants = getBusyParticipants(day, time);
-                  const slotColor = getSlotColor(busyCount, totalParticipants);
-                  const isAvailable = busyCount === 0;
+    <div className="w-full h-full flex flex-col px-[2%] md:px-0">
+      <div className="max-w-full md:max-w-[800px] mx-auto select-none h-full flex flex-col w-full">
+        {/* Header row */}
+        <div
+          className="grid gap-1 mb-2 flex-shrink-0"
+          style={{
+            gridTemplateColumns: `minmax(50px, 0.8fr) repeat(${days.length}, minmax(40px, 1fr))`,
+          }}
+        >
+          <div className="text-xs font-medium text-gray-700 flex items-center">
+            Time
+          </div>
+          {days.map((day) => (
+            <div
+              key={day}
+              className="text-xs font-medium text-gray-700 text-center"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
 
-                  return (
-                    <td key={getSlotId(day, time)} className="p-1">
-                      <div
-                        className={`
-                          w-full min-h-[40px] rounded-md flex items-center justify-center
-                          ${slotColor}
-                          ${isAvailable ? "font-semibold" : ""}
-                          transition-colors
-                        `}
-                        title={
-                          busyCount > 0
-                            ? `${busyCount} busy: ${busyParticipants.join(
-                                ", "
-                              )}`
-                            : "Available for everyone"
-                        }
-                      >
-                        {busyCount > 0 && (
-                          <span className="text-xs text-gray-700">
-                            {busyCount}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Grid rows */}
+        <div className="flex flex-col gap-1 flex-1 overflow-y-auto">
+          {filteredTimeSlots.map((time) => (
+            <div
+              key={time}
+              className="grid gap-1 flex-1 min-h-[44px]"
+              style={{
+                gridTemplateColumns: `minmax(50px, 0.8fr) repeat(${days.length}, minmax(40px, 1fr))`,
+              }}
+            >
+              <div className="text-xs text-gray-600 flex items-center pr-2">
+                {time}
+              </div>
+              {days.map((day) => {
+                const busyCount = getBusyCount(day, time);
+                const busyParticipants = getBusyParticipants(day, time);
+                const slotColor = getSlotColor(busyCount, totalParticipants);
+                const isAvailable = busyCount === 0;
+
+                return (
+                  <div key={getSlotId(day, time)} className="h-full">
+                    <div
+                      className={`
+                        w-full h-full rounded-md flex items-center justify-center
+                        ${slotColor}
+                        ${isAvailable ? "font-semibold" : ""}
+                        transition-colors
+                      `}
+                      title={
+                        busyCount > 0
+                          ? `${busyCount} busy: ${busyParticipants.join(", ")}`
+                          : "Available for everyone"
+                      }
+                    >
+                      {busyCount > 0 && (
+                        <span className="text-xs text-gray-700">
+                          {busyCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 mt-4 text-sm">
+        <div className="flex items-center gap-4 mt-4 text-sm flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-available rounded"></div>
             <span>Available</span>
