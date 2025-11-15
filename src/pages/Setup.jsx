@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Slider } from "@/components/ui/slider";
 import { createRoom } from "@/utils/roomHelpers";
+import GridPreview from "@/components/GridPreview";
 
 export default function Setup() {
   const navigate = useNavigate();
@@ -137,6 +138,17 @@ export default function Setup() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Preview Grid */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4">Preview</h3>
+        <GridPreview
+          startTime={`${timeRange[0]}:00`}
+          endTime={`${timeRange[1]}:00`}
+          days={selectedDays}
+          timeSlotDuration={timeSlotDuration}
+        />
       </div>
 
       {/* Create Room Button */}
