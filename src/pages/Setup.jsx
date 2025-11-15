@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Slider } from "@/components/ui/slider";
 import { createRoom } from "@/utils/roomHelpers";
 import GridPreview from "@/components/GridPreview";
+import { toast } from "react-hot-toast";
 
 export default function Setup() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function Setup() {
       navigate(`/room/${roomCode}`);
     } catch (error) {
       console.error("Error creating room:", error);
-      alert("Failed to create room. Please try again.");
+      toast.error("Failed to create room. Please try again.");
     }
   };
 
@@ -155,7 +156,7 @@ export default function Setup() {
       <button
         onClick={handleCreateRoom}
         disabled={!roomName.trim() || selectedDays.length === 0}
-        className="w-full bg-primary-blue text-white py-3 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-primary-blue text-white py-3 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed mt-8"
       >
         Create room
       </button>

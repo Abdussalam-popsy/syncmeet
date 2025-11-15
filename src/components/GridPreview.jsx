@@ -40,7 +40,7 @@ const GridPreview = ({ startTime, endTime, days, timeSlotDuration }) => {
 
   return (
     <div className="w-full">
-      <div className="max-w-full md:max-w-[600px] mx-auto">
+      <div className="max-w-full mx-auto">
         {/* Header row */}
         <div
           className="grid gap-1 mb-2"

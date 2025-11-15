@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRoom } from "@/utils/roomHelpers";
+import { toast } from "react-hot-toast";
 
 export default function Join() {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ export default function Join() {
       if (room) {
         // Store name and navigate to room
         localStorage.setItem("userName", name);
+        toast.success(`"Joining room as ${name}!"`);
         navigate(`/room/${roomCode.toUpperCase()}`);
       } else {
         setError("Room not found. Please check the code and try again.");

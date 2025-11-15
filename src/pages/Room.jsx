@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TimeGrid from "../components/TimeGrid";
 import ResultsGrid from "../components/ResultsGrid";
+import { toast } from "react-hot-toast";
 import {
   getRoom,
   addParticipant,
   updateParticipantBusySlots,
   subscribeToParticipants,
 } from "@/utils/roomHelpers";
+import ParticipantModal from "@/components/ParticipantModal";
 
 export default function Room() {
   const { roomId } = useParams();
@@ -19,7 +21,7 @@ export default function Room() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("mark");
   const [filter, setFilter] = useState("everything");
-
+  const [showParticipantModal, setShowParticipantModal] = useState(false);
   // Load room data on mount
   useEffect(() => {
     const loadRoom = async () => {
@@ -46,11 +48,11 @@ export default function Room() {
             localStorage.setItem(`participant_${roomId}`, pId);
           }
         } else {
-          alert("Room not found!");
+          toast.error("Room not found!");
         }
       } catch (error) {
         console.error("Error loading room:", error);
-        alert("Failed to load room");
+        toast.error("Failed to load room, please try again.");
       } finally {
         setLoading(false);
       }
@@ -64,6 +66,7 @@ export default function Room() {
     if (!roomId) return;
 
     const unsubscribe = subscribeToParticipants(roomId, (participantsList) => {
+      console.log("Participants from Firebase:", participantsList);
       setParticipants(participantsList);
 
       const currentParticipant = participantsList.find(
@@ -116,7 +119,7 @@ export default function Room() {
     // Use clipboard for desktop (or if mobile share failed)
     try {
       await navigator.clipboard.writeText(url);
-      alert("Room link copied to clipboard!");
+      toast.success("Room link copied!");
     } catch (err) {
       prompt("Copy this link manually:", url);
     }
@@ -178,12 +181,37 @@ export default function Room() {
         )}
 
         <div className="flex items-center gap-2 ml-auto">
-          <span className="text-sm text-gray-600">
-            {view === "results" ? "Participants" : "Room Code"}:
-          </span>
-          <span className="font-mono font-bold text-lg">
-            {view === "results" ? participants.length : roomId}
-          </span>
+          {view === "results" ? (
+            <button
+              onClick={() => setShowParticipantModal(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7.99992 6.66665C9.47268 6.66665 10.6666 5.47274 10.6666 3.99998C10.6666 2.52722 9.47268 1.33331 7.99992 1.33331C6.52716 1.33331 5.33325 2.52722 5.33325 3.99998C5.33325 5.47274 6.52716 6.66665 7.99992 6.66665Z"
+                  stroke="black"
+                />
+                <path
+                  d="M13.3334 11.6667C13.3334 13.3233 13.3334 14.6667 8.00008 14.6667C2.66675 14.6667 2.66675 13.3233 2.66675 11.6667C2.66675 10.01 5.05475 8.66666 8.00008 8.66666C10.9454 8.66666 13.3334 10.01 13.3334 11.6667Z"
+                  stroke="black"
+                />
+              </svg>
+              <span className="font-bold">
+                {new Set(participants.map((p) => p.name)).size}
+              </span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Room Code:</span>
+              <span className="font-mono font-bold text-lg">{roomId}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -252,6 +280,15 @@ export default function Room() {
           View results
         </button>
       </div>
+
+      {/* Participant Modal */}
+      {showParticipantModal && (
+        <ParticipantModal
+          participants={participants}
+          currentParticipantId={participantId}
+          onClose={() => setShowParticipantModal(false)}
+        />
+      )}
     </div>
   );
 }
